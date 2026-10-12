@@ -24,21 +24,27 @@ function delStorage(key) {
 }
 
 function playAudio(type) {
-  return new Audio(new URL(`audio/${type}.mp3`, HanziAuth.root).href).play()
+  return new Audio(new URL(`audio/${type}.mp3`, HanziAuth.root).href).play().catch(() => false)
 }
 
 function myAlert(msg, timeout) {
-  if (!timeout) return alert(msg)
-  setTimeout(() => alert(msg), timeout)
+  dnotify(msg, 4500)
 }
 
-function loadScripts() {
-  const script = document.createElement('script')
-  script.src = 'js/lib/dataWriter.js'
-  document.body.appendChild(script)
+const loadedScripts = new Map()
+function loadScripts(file = 'js/lib/dataWriter.js') {
+  if (!loadedScripts.has(file)) loadedScripts.set(file, new Promise((resolve, reject) => {
+    const script = document.createElement('script')
+    script.src = new URL(file, HanziAuth.root).href
+    script.onload = resolve
+    script.onerror = () => { loadedScripts.delete(file); script.remove(); reject(Error('笔画加载失败')); }
+    document.body.appendChild(script)
+  }))
+  return loadedScripts.get(file)
 }
 
  function speakText(text, times, rate, pitch) {
+    if (window.HanziSpeech) return HanziSpeech.speak(text, times, rate)
     if (window.speechSynthesis) {
         times = times || 1;
         rate = rate || 0.7;
@@ -48,9 +54,9 @@ function loadScripts() {
         utterance.rate = rate; // 语速（0.1-10，默认1）
         utterance.pitch = pitch; // 音高（0-2，默认1）
         // volume：音量（0-1，默认1）
-        speechSynthesis.speak(utterance);
+        speechSynthesis.cancel(); speechSynthesis.speak(utterance);
     } else {
-        alert("您的浏览器不支持语音合成功能，推荐使用谷歌浏览器。");
+        dnotify("暂时无法播放声音，请检查网络和设备音量。");
     }
 }
 
@@ -97,6 +103,7 @@ function aniHanzi(target, val, size) {
     delayBetweenStrokes: 500, // 每个笔画之间的间隔时间 ms
   });
   writer.loopCharacterAnimation();
+  return writer;
 }
 
 function writeHanzi(target, val, size, callback) {
@@ -117,33 +124,34 @@ function writeHanzi(target, val, size, callback) {
     },
     // onComplete: function(summaryData) {}
   });
+  return writer;
 }
 
-function myCharDataLoader(char, onComplete) {
-  if (writerData[char]) {
-      console.log(`匹配到了本地${char}的笔画数据`);
-      onComplete(writerData[char]);
-    } else {
-      console.log(`本地没有<b> ${char} </b>的笔画数据，正在加载...`);
-      HanziWriter.loadCharacterData(char).then(data => {
-        if (!data) return
-        writerData[char] = data;
-        // 最好也本地缓存一下新的笔画数据，不然每次都要重新加载一次
-        onComplete(writerData[char]);
-      }); 
-    }
+async function myCharDataLoader(char, onComplete, onError) {
+  try {
+    await loadScripts()
+    if (!window.writerData?.[char]) await loadScripts('js/lib/dataWriter1.js')
+    if (!window.writerData?.[char] && !window.writerData1?.[char]) await loadScripts('js/lib/stroke-supplement.js')
+    const data = window.writerData?.[char] || window.writerData1?.[char] || window.writerSupplement?.[char]
+    if (!data) throw Error('缺少笔画数据')
+    onComplete(data)
+  } catch (error) {
+    dnotify('笔画暂时加载失败，请返回学习后重试。', 5000)
+    if (onError) onError(error)
+  }
 }
 
 window.dnotifyTimer = null
 function dnotify(txt, time) {
   clearTimeout(dnotifyTimer)
   if (document.getElementById('dnotify')) {
-    document.getElementById('dnotify').innerHTML = txt
+    document.getElementById('dnotify').textContent = txt
     document.getElementById('dnotify').style.display = 'block';
   } else {
     var notEle = document.createElement('div');
     notEle.id = 'dnotify'
-    notEle.innerHTML = txt;
+    notEle.textContent = txt;
+    notEle.setAttribute('role', 'status');
     notEle.style = `display: flex; min-width: 0;max-width: calc(100vw - 24px); padding: 6px 12px 6px 12px; color:#333; box-sizing: border-box; border: 1px solid #ebeef5; 
     position: fixed; background-color: #fff; top:10px;right:10px;z-index: 9999999; box-shadow: 0 2px 12px 0 rgba(0,0,0,.1); text-align: center;justify-content: center;
     transition: opacity .3s,transform .3s,left .3s,right .3s,top .4s,bottom .3s;  overflow: hidden;font-size: 14px;line-height: 1.4; border-radius: 8px; `
