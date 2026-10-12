@@ -8,15 +8,23 @@ function getStorage(key) {
   }
 }
 function setStorage(key, val) {
-  if (!val && val !== 0 && val !== false) return localStorage.removeItem(key)
+  if (window.HanziAuth && !window.HanziAuth.canWrite()) return
+  if (!val && val !== 0 && val !== false) {
+    localStorage.removeItem(key)
+    if (window.HanziAuth) window.HanziAuth.queueSync()
+    return
+  }
   localStorage.setItem(key, JSON.stringify(val))
+  if (window.HanziAuth) window.HanziAuth.queueSync()
 }
 function delStorage(key) {
+  if (window.HanziAuth && !window.HanziAuth.canWrite()) return
   localStorage.removeItem(key)
+  if (window.HanziAuth) window.HanziAuth.queueSync()
 }
 
 function playAudio(type) {
-  return new Audio(`./audio/${type}.mp3`).play()
+  return new Audio(new URL(`audio/${type}.mp3`, HanziAuth.root).href).play()
 }
 
 function myAlert(msg, timeout) {
@@ -78,11 +86,11 @@ function renderFanningStrokes(target, strokes, size) {
 
 function aniHanzi(target, val, size) {
   target.innerHTML = ''
-  size = size || 150
+  size = size || Math.min(150, Math.floor((window.innerWidth - 60) / 2))
   let writer = HanziWriter.create(target, val, {
     charDataLoader: myCharDataLoader,
-    width: 150,
-    height: 150,
+    width: size,
+    height: size,
     showCharacter: false,
     padding: 5,
     strokeAnimationSpeed: 1, // 动画速度
@@ -93,11 +101,11 @@ function aniHanzi(target, val, size) {
 
 function writeHanzi(target, val, size, callback) {
   target.innerHTML = ''
-  size = size || 150
+  size = size || Math.min(150, Math.floor((window.innerWidth - 60) / 2))
   let writer = HanziWriter.create(target, val, {
     charDataLoader: myCharDataLoader,
-    width: 150,
-    height: 150,
+    width: size,
+    height: size,
     showCharacter: false,
     showHintAfterMisses: 2,
     padding: 5,
@@ -136,7 +144,7 @@ function dnotify(txt, time) {
     var notEle = document.createElement('div');
     notEle.id = 'dnotify'
     notEle.innerHTML = txt;
-    notEle.style = `display: flex; min-width: 330px;max-width: 40%; padding: 6px 12px 6px 12px; color:#333; box-sizing: border-box; border: 1px solid #ebeef5; 
+    notEle.style = `display: flex; min-width: 0;max-width: calc(100vw - 24px); padding: 6px 12px 6px 12px; color:#333; box-sizing: border-box; border: 1px solid #ebeef5; 
     position: fixed; background-color: #fff; top:10px;right:10px;z-index: 9999999; box-shadow: 0 2px 12px 0 rgba(0,0,0,.1); text-align: center;justify-content: center;
     transition: opacity .3s,transform .3s,left .3s,right .3s,top .4s,bottom .3s;  overflow: hidden;font-size: 14px;line-height: 1.4; border-radius: 8px; `
     document.body.append(notEle)
@@ -163,8 +171,8 @@ function getRandomColor(maxRGBValue = 180) {
 }
 
 // var writer = HanziWriter.create('docs-target-7', '测', {
-//   width: 150,
-//   height: 150,
+//   width: size,
+//   height: size,
 //   showCharacter: false,
 //   showHintAfterMisses: 3,
 //   padding: 5,

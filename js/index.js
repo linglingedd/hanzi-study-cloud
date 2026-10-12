@@ -10,7 +10,7 @@ window.dataList.forEach((item, ind) => {
   })
 })
 
-Vue.createApp({
+HanziAuth.requireLogin().then(() => Vue.createApp({
   data() {
     return {
       flag: 1,
@@ -97,7 +97,7 @@ Vue.createApp({
     },
     goTop() {
       // document.getElementById('hanzi-list').scrollTo({ top: 0, behavior: 'smooth'});
-      document.querySelector(`#hanzi-list > .hanzi-item:nth-of-type(${this.lockInd + 1})`).scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+      document.querySelector(`#hanzi-list > .hanzi-item:nth-of-type(${Math.min(this.lockInd + 1, this.list.length)})`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
     },
     startApp() {
       this.notStart = false
@@ -255,4 +255,4 @@ Vue.createApp({
       window.location.href = './poem/index.html'
     },
   },
-}).mount('body')
+}).mount('#app'))
