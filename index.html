@@ -11,34 +11,42 @@
   <link rel="apple-touch-icon" href="favicon.ico">
   <link rel="stylesheet" href="./css/style.css">
   <link rel="stylesheet" href="css/cloud.css">
+  <link rel="stylesheet" href="css/ux.css">
 </head>
 
 <body id="body" class="hanzi-page">
   <div id="app" class="flex-center" :class="['theme-' + theme]" v-cloak>
     <div class="body-bg"></div>
     <div class="container">
-      <div class="btn-top btn-theme" @click="changeTheme">🍀</div>
-      <img class="btn-top audio-img" :class="{ off: !bgPlay }" @click="toggleBg" src="img/audio.png" alt="">
-      <div class="btn-top click-read" :class="{ off: !isClickRead }" @click="toggleCr" v-show="hanziShow">👆</div>
-      <div class="go-top" @click="goTop" v-show="hanziShow">🔝</div>
-      <div class="mask flex-center" v-if="notStart">
-        <div>
-          <div><button class="game-button mb10" @click="startApp">开始学习, 当前进度: {{ lockInd }} / {{ list.length }}</button></div>
-          <div><button class="game-button mb10 own w100" @click="goMath">学习数学</button></div>
-          <div><button class="game-button own w100" @click="goPoem">学习古诗词</button></div>
+      <section class="home-menu" v-if="notStart" aria-label="学习主界面">
+        <p class="home-eyebrow">每天一点点，成长看得见</p>
+        <h1>今天，想学点什么？</h1>
+        <p>选择一门课程，继续你的学习之旅。</p>
+        <div class="subject-grid">
+          <button class="subject-card" @click="startApp"><span aria-hidden="true">字</span><strong>汉字学习</strong><small>听发音 · 写笔画 · 玩游戏</small><small>已完成 {{ lockInd }} / {{ list.length }} 关</small></button>
+          <button class="subject-card math-subject" @click="goMath"><span aria-hidden="true">＋</span><strong>学习数学</strong><small>加减练习 · 即时检查</small><small>继续上次未完成的题目</small></button>
+          <button class="subject-card poem-subject" @click="goPoem"><span aria-hidden="true">诗</span><strong>学习古诗词</strong><small>拼音朗读 · 译文注释</small><small>按年级或诗名查找</small></button>
         </div>
+        <p class="home-footnote">学习进度自动保存。进入课程后，点顶部“主界面”即可返回。</p>
+      </section>
+      <div class="study-toolbar" v-if="!notStart">
+        <button @click="changeTheme" :aria-pressed="theme === 'green'">🍀 切换主题</button>
+        <button @click="toggleBg" :aria-pressed="bgPlay">{{ bgPlay ? '♫ 音乐开' : '♫ 音乐关' }}</button>
+        <button @click="toggleCr" v-if="hanziShow" :aria-pressed="isClickRead" :class="{ selected: isClickRead }">{{ isClickRead ? '👆 点读模式：开' : '👆 点读模式：关' }}</button>
+        <button @click="goTop" v-if="hanziShow">定位当前关卡</button>
       </div>
-      <header>
+      <header v-show="!notStart">
         <!-- 🐻  -->
-        <h1 class="flex-center" @click="flagClick">哪吒学汉字</h1>
+        <h1 class="flex-center">哪吒学汉字</h1>
         <!-- <p>点击汉字或播放按钮听发音，点击左右箭头切换！</p> -->
       </header>
 
-      <div id="hanzi-section" v-show="hanziShow">
+      <div id="hanzi-section" v-show="hanziShow && !notStart">
+        <p class="mode-help">{{ isClickRead ? '点读已开启：点击任意汉字听发音；关闭点读后进入闯关学习。' : '从当前关卡开始，依次完成写笔画、听音辨字和画一画。' }}</p>
         <div class="hanzi-list" id="hanzi-list">
-          <div class="hanzi-item" :class="{locked: lockInd < ind, on: lockInd == ind, tested: item.isTest}" v-for="(item, ind) in list" :key="ind" @click="hanziClick(item, ind)">
+          <button type="button" class="hanzi-item" :class="{locked: !isClickRead && lockInd < ind, on: lockInd == ind, tested: item.isTest}" v-for="(item, ind) in list" :key="ind" @click="hanziClick(item, ind)" :aria-label="item.isTest ? '阶段测验' : (isClickRead ? '点读：' : '学习：') + item.w" :disabled="isClickRead && item.isTest">
             {{ item.w }}
-          </div>
+          </button>
         </div>
       </div>
 
@@ -53,7 +61,7 @@
           </div>
           <!-- <button id="nextChar" class="nav-button">&gt;</button> -->
         </div>
-        <p class="instructions" v-if="currItem" @click="speakText(currItem.s)">▶️ 句子：{{ currItem.s }}</p> <!-- 点击开始游戏，巩固学习！ -->
+        <button class="instructions sentence-button" v-if="currItem" @click="speakText(currItem.s)">▶️ 句子：{{ currItem.s }}</button>
         <div class="game-selection mb15">
           <button class="game-button" :class="[gameStep.includes(1) && 'own']" @click="goGame('stroke')">🖋️ 1. 书写笔画</button>
           <button class="game-button" :class="[gameStep.includes(2) && 'own']" @click="goGame('listen')">👂 2. 听音辨字</button>
@@ -70,7 +78,7 @@
         <h2>游戏时间！🥳</h2>
         <div id="game-content">
           <div v-show="gameType === 'listen'">
-            <p class="question-text"><span @click="readItem(currItem, true)">🔊</span>听声音，选择正确的汉字：</p>
+            <p class="question-text"><button class="replay-button" @click="readItem(currItem, true)">🔊 再听一次</button>听声音，选择正确的汉字：</p>
             <div class="options-grid">
               <button class="option-button" :class="[item.status]" v-for="(item, ind) in randomList" :key="ind" @click="listenClick(item)">
                 {{ item.w }}
@@ -108,10 +116,11 @@
           <button @click="goBack(2)" class="action-button"><span>👈</span> 返回学习</button>
         </div>
       </section>
+      <div class="reading-feedback" v-if="!notStart"><p role="status" :class="{ 'reading-error': readingError }">{{ readingStatus }}</p><button @click="stopReading">停止朗读</button></div>
 
     </div>
 
-    <audio id="audioBg" src="audio/bg1.mp3"></audio>
+    <audio id="audioBg" src="audio/bg1.mp3" loop preload="none"></audio>
     <audio id="correctSound" src="audio/correct.mp3"></audio> <!-- 成功音效 -->
     <audio id="wrongSound" src="audio/wrong.mp3"></audio> <!-- 失败音效 -->
   </div>
@@ -122,6 +131,8 @@
   <!-- <script src="js/lib/dataWriter.js"></script> -->
   <script src="js/config.js"></script>
   <script src="js/auth-client.js"></script>
+  <script src="js/audio-index.js"></script>
+  <script src="js/reading.js"></script>
   <script src="js/utils.js"></script>
   <script src="js/index.js"></script>
 </body>
