@@ -4,15 +4,16 @@
 <head>
   <meta charset="UTF-8">
   <!-- <meta name="viewport" content="width=device-width, initial-scale=1.0"> -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
   <title>🐻哪吒学汉字🐻</title>
   <meta name="theme-color" content="#ff6f91">
   <link rel="apple-touch-icon" href="favicon.ico">
   <link rel="stylesheet" href="./css/style.css">
+  <link rel="stylesheet" href="css/cloud.css">
 </head>
 
-<body id="body">
+<body id="body" class="hanzi-page">
   <div id="app" class="flex-center" :class="['theme-' + theme]" v-cloak>
     <div class="body-bg"></div>
     <div class="container">
@@ -119,6 +120,8 @@
   <script src="js/lib/vue.global.prod.min.js"></script>
   <script src="js/lib/dataList.js"></script>
   <!-- <script src="js/lib/dataWriter.js"></script> -->
+  <script src="js/config.js"></script>
+  <script src="js/auth-client.js"></script>
   <script src="js/utils.js"></script>
   <script src="js/index.js"></script>
 </body>

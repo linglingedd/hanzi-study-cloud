@@ -1,70 +1,19 @@
-# 项目简介
-- 儿童学习汉字, 学前教育, 小朋友学习汉字拼音, 通过小游戏闯关的方式学习汉字, 听音识字, 笔画书写
-- 适合3~6岁小朋友学习汉字拼音, 笔画书写, 听音识字, 汉字小游戏闯关
-- 支持学习加减法, 设置10以内还是100以内, 设置是否支持减法
-- 支持学习一到六年级小学古诗词, 支持古诗朗读, 上下首切换, 查看古诗词拼音，注释译文等
-- 支持平板端, 手机端, 电脑端
-- 支持一键开启护眼模式(左上角绿叶)
-- 家长可以按顶部标题10次可以自定义当前关卡进度, 方便多终端同步进度
-- `20250802`, 增加单元测验考试, 增加点读模式, 画一画增加特效, 增加至1200多个汉字
+# 哪吒学汉字 · 云端账号版
 
-# 运行方式
+基于 [dhjz/hanzi-study](https://github.com/dhjz/hanzi-study) 的 MIT 开源项目改造，保留汉字、笔画、听音、数学及古诗内容。
 
-## 方式一：直接运行（原方式）
-- 下载文件, 直接本地或者部署打开index.html即可, 都是离线资料
+- 学习者只输入管理员分配的学习密码，无需手机号和注册。
+- 首次登录绑定当前浏览器，一个学习密码只允许一个浏览器身份。
+- 汉字关卡、数学答题、古诗选择与设置保存至 Supabase，短暂断网时本机暂存并自动补传。
+- 管理后台支持批量生成（每批 1–100 个）、自定义密码、改名、重置密码、停用/启用、解绑换机。
+- 支持手机、平板、电脑；GitHub Pages 子目录部署。
+- 后端使用 Supabase Edge Function + PostgreSQL + Supabase Auth 管理员身份。
 
-## 方式二：Docker部署（推荐）
-### 使用Docker Compose（推荐）
-```bash
-# 克隆项目
-git clone https://github.com/dhjz/hanzi-study.git
-cd hanzi-study
+**当前仅完成本地实现与测试，生产发布等待用户登录 GitHub、Supabase。**
 
-# 启动容器
-docker-compose up -d
+部署步骤、生产验收和使用边界见 [DEPLOYMENT.md](DEPLOYMENT.md)。
 
-# 访问应用
-# 浏览器打开 http://localhost:8080
-```
+本地预览：`node scripts/build.mjs` 后运行 `node scripts/preview.mjs`。
+未配置生产 Supabase 时，预览只能展示登录界面；学习密码需云端部署完成才能使用。
 
-### 使用Docker直接构建
-```bash
-# 构建镜像
-docker build -t hanzi-study .
-
-# 运行容器
-docker run -d -p 8080:80 --name hanzi-study-app hanzi-study
-
-# 访问应用
-# 浏览器打开 http://localhost:8080
-```
-
-### Docker命令说明
-```bash
-# 查看运行状态
-docker-compose ps
-
-# 查看日志
-docker-compose logs -f
-
-# 停止服务
-docker-compose down
-
-# 重启服务
-docker-compose restart
-```
-
-# 其他说明
-- 页面效果图见`appimg`目录
-- <img src="https://gcore.jsdelivr.net/gh/dhjz/hanzi-study@master/appimg/app1.jpg" style="width: 340px;"/>
-- <img src="https://gcore.jsdelivr.net/gh/dhjz/hanzi-study@master/appimg/app2.jpg" style="width: 340px;"/>
-- <img src="https://gcore.jsdelivr.net/gh/dhjz/hanzi-study@master/appimg/app3.jpg" style="width: 340px;"/>
-- <img src="https://gcore.jsdelivr.net/gh/dhjz/hanzi-study@master/appimg/app4.jpg" style="width: 340px;"/>
-- <img src="https://gcore.jsdelivr.net/gh/dhjz/hanzi-study@master/appimg/app5.jpg" style="width: 340px;"/>
-- <img src="https://gcore.jsdelivr.net/gh/dhjz/hanzi-study@master/appimg/app6.jpg" style="width: 340px;"/>
-
-- 项目地址: [https://github.com/dhjz/hanzi-study]( https://github.com/dhjz/hanzi-study)  
-- 预览地址: [https://dhjz.github.io/hanzi-study/](https://dhjz.github.io/hanzi-study/)
-
-# 如果你觉得对你有帮助, 可以鼓励一下哦~
-- <img src="https://gcore.jsdelivr.net/gh/dhjz/hanzi-study@master/appimg/zanshang.jpg" style="width: 340px;"/>
+原始项目保留于用户 D 盘原目录，云端改造另存新目录。

@@ -1,0 +1,10 @@
+node_modules/
+dist/
+private-data/
+.env
+.env.*
+!.env.example
+*.private.*
+test-results/
+supabase/.temp/
+supabase/.branches/

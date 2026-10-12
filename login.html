@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#345d50"><meta name="referrer" content="strict-origin-when-cross-origin">
+  <title>开始学习 · 哪吒学汉字</title><link rel="icon" href="favicon64.ico"><link rel="stylesheet" href="login.css">
+</head>
+<body>
+  <main class="login-shell">
+    <section class="welcome" aria-label="学习介绍">
+      <a class="brand" href="login.html"><span class="brand-mark">字</span> 哪吒学汉字</a>
+      <div class="welcome-content"><p class="eyebrow">每天一点点，成长看得见</p>
+        <h1>从一个汉字，<br>认识大大的世界。</h1><p class="intro">听一听、写一写、玩一玩。<br>陪孩子开启今天的学习旅程。</p>
+        <div class="character-cards" aria-hidden="true"><span><small>shān</small>山</span><span><small>shuǐ</small>水</span><span><small>rì</small>日</span></div>
+        <div class="subjects"><span>汉字启蒙</span><span>趣味数学</span><span>古诗诵读</span></div>
+      </div><p class="welcome-foot">每一次小进步，都值得被记住。</p>
+    </section>
+    <section class="login-panel">
+      <div class="login-heading"><span class="tiny-label">准备好了吗？</span><h2>继续你的学习之旅</h2><p>输入管理员分配的学习密码即可进入。</p></div>
+      <form id="login-form">
+        <label for="password">学习密码</label>
+        <div class="password-input"><input id="password" name="password" type="password" autocomplete="current-password" placeholder="请输入学习密码" required maxlength="100" autocapitalize="characters" spellcheck="false"><button id="toggle-password" type="button" aria-label="显示密码">显示</button></div>
+        <p id="login-error" class="form-message" role="alert"></p>
+        <button class="primary" type="submit">进入学习 <span aria-hidden="true">→</span></button>
+      </form>
+      <div class="login-note"><span class="note-icon" aria-hidden="true">✓</span><p><strong>进度自动保存</strong><br>同一密码再次登录，可继续上次的学习。</p></div>
+      <p class="device-note">首次登录会绑定当前浏览器。需要换设备或浏览器时，请联系管理员解绑。</p>
+      <a class="admin-link" href="admin.html">管理员入口</a>
+    </section>
+  </main>
+  <script src="js/config.js"></script><script src="js/auth-client.js"></script><script src="js/login.js"></script>
+</body></html>

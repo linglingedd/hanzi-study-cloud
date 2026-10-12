@@ -1,0 +1,20 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>学习账号管理</title><link rel="icon" href="favicon64.ico"><link rel="stylesheet" href="admin.css"></head>
+<body><header><a href="login.html" class="brand"><b>字</b> 哪吒学汉字 <span>管理后台</span></a><button id="logout" hidden>退出管理</button></header>
+<main>
+  <section id="admin-login" class="panel login"><p class="eyebrow">管理员专用</p><h1>管理学习账号</h1><p class="muted">使用管理员邮箱和密码登录。</p>
+    <form id="admin-login-form"><label>邮箱<input id="admin-email" type="email" autocomplete="username" required></label><label>管理密码<input id="admin-password" type="password" autocomplete="current-password" required></label><button class="primary" type="submit">登录管理后台</button></form>
+  </section>
+  <p id="message" role="status" aria-live="polite"></p>
+  <section id="dashboard" hidden>
+    <div class="page-title"><div><p class="eyebrow">账号与学习进度</p><h1>让每一份进步都有记录</h1></div><button id="refresh">刷新数据</button></div>
+    <div class="stats"><article><span>全部账号</span><strong id="total">0</strong></article><article><span>已绑定设备</span><strong id="bound">0</strong></article><article><span>待分配 / 未绑定</span><strong id="unbound">0</strong></article><article><span>已停用</span><strong id="disabled">0</strong></article></div>
+    <section class="panel"><div class="section-title"><h2>配置学习密码</h2><span class="muted">密码仅在生成时显示，请及时保存</span></div>
+      <form id="create-form" class="create-form"><label>账号名称 / 批次名称<input id="account-label" value="学习账号" maxlength="70" required></label><label>生成数量<input id="account-count" type="number" min="1" max="100" value="1" required></label><label class="custom-field">自定义密码（选填，仅单个账号）<input id="custom-password" type="text" autocomplete="off" placeholder="留空则生成随机密码" maxlength="80"></label><button class="primary" type="submit">生成学习密码</button></form>
+      <p class="muted help">随机密码由 20 位字母和数字组成。自定义密码需 16–64 位字母或数字，忽略大小写、空格和连接符。</p>
+    </section>
+    <section class="panel"><div class="section-title"><h2>学习账号</h2><input id="search" type="search" placeholder="搜索账号名称" aria-label="搜索账号名称"></div><div class="table-wrap"><table><thead><tr><th>账号名称</th><th>状态</th><th>学习关卡</th><th>最近登录</th><th>管理操作</th></tr></thead><tbody id="accounts"></tbody></table></div><p id="empty" class="muted" hidden>没有匹配的账号。</p></section>
+    <p class="muted help">解绑用于更换设备：学习进度会保留，旧登录会失效；下一次成功登录将绑定新浏览器。重置密码也会保留进度，但不会自动解绑。</p>
+  </section>
+</main>
+<dialog id="credentials-dialog"><div class="dialog-title"><h2>请保存这批学习密码</h2></div><p class="muted">这是本次生成的明文密码，关闭后后台不会再次显示。</p><div id="credentials-list"></div><div class="dialog-actions"><button id="download-credentials" class="primary">下载密码清单</button><button id="close-credentials">我已保存，关闭</button></div></dialog>
+<script src="js/config.js"></script><script src="admin.js"></script></body></html>
