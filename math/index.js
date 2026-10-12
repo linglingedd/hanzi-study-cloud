@@ -1,4 +1,4 @@
-Vue.createApp({
+HanziAuth.requireLogin().then(() => Vue.createApp({
   data() {
     return {
       range: 99,
@@ -14,9 +14,22 @@ Vue.createApp({
   mounted() {
     this.range = getStorage('math-range') || 99
     this.hasSub = getStorage('math-sub') || false;
-    this.generateProblems();
+    const saved = getStorage('math-state');
+    if (saved && Array.isArray(saved.problems) && saved.problems.length === 18) {
+      this.problems = saved.problems; this.answers = saved.answers || {};
+      this.checked = !!saved.checked; this.allRight = !!saved.allRight;
+    } else this.generateProblems();
+  },
+  watch: {
+    problems: { deep: true, handler() { this.saveQuiz(); } },
+    answers: { deep: true, handler() { this.saveQuiz(); } },
+    checked() { this.saveQuiz(); }
   },
   methods: {
+    saveQuiz() {
+      if (this.problems.length !== 18) return;
+      setStorage('math-state', { problems: this.problems, answers: this.answers, checked: this.checked, allRight: this.allRight });
+    },
     checkAnswers() {
       let len = Object.values(this.answers).filter(Boolean).length
       if (len !== this.problems.length) {
@@ -49,7 +62,7 @@ Vue.createApp({
         return setTimeout(() => alert('请回答完当前所有题目再生成哦'), 100)
       }
       this.allRight = false
-      setStorage('math-range', this.range);
+      setStorage('math-range', Number(this.range));
       setStorage('math-sub', this.hasSub);
       this.problems = [];
       this.checked = false;
@@ -106,4 +119,4 @@ Vue.createApp({
       window.location.href = '../index.html'
     }
   }
-}).mount('#app')
+}).mount('#app'))
