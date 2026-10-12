@@ -76,7 +76,8 @@ const app = {
             this.saveLocal()
         },
         selectPoetry(poetry, isInit, gradeInd) {
-            if (gradeInd) {
+            if (!poetry) return;
+            if (gradeInd !== undefined) {
                 this.showList = false;
                 this.currGrade = gradeInd;
                 this.currentPoetryList = this.poemData[this.currGrade]
@@ -155,7 +156,8 @@ const app = {
         changeTheme(themeKey) {
             this.currentTheme = themeKey;
             // 将当前主题保存到 localStorage
-            localStorage.setItem('poetryAppTheme', themeKey);
+            if (HanziAuth.canWrite()) { localStorage.setItem('poetryAppTheme', themeKey); HanziAuth.queueSync(); }
+            if (window.HanziAuth) window.HanziAuth.queueSync();
         },
         getFileName(val) {
             return decodeURIComponent(val.substring(val.lastIndexOf('/') + 1)).toLowerCase();
@@ -182,4 +184,4 @@ const app = {
     }
 };
 
-createApp(app).mount('#app');
+HanziAuth.requireLogin().then(() => createApp(app).mount('#app'));

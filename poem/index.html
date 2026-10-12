@@ -7,9 +7,10 @@
     <link rel="stylesheet" href="index.css">
     <!-- 引入 Vue.js -->
     <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.5.17/vue.global.prod.min.js"></script> -->
+  <link rel="stylesheet" href="../css/cloud.css">
 </head>
-<body id="app" v-cloak>
-    <div class="app_wrap" :class="currentTheme"> <!-- 绑定当前主题类 -->
+<body id="app" class="poem-page">
+    <div v-cloak class="app_wrap" :class="currentTheme"> <!-- 绑定当前主题类 -->
         <div class="container" v-show="!showList">
             <!-- 左侧导航栏 -->
             <div class="sidebar">
@@ -93,7 +94,7 @@
                 </div>
                 <div v-else class="placeholder">
                     <h1>📚</h1>
-                    <h2>请在左侧选择一首古诗词开始学习吧！</h2>
+                    <h2>选择下方目录，开始读一首诗吧！</h2>
                     <p>✨ 寓教于乐，让古诗词更有趣！ ✨</p>
                 </div>
             
@@ -113,9 +114,10 @@
             </div>
         </div>
         <div class="list-icon">
+            <a href="../index.html" aria-label="返回汉字学习">汉字</a>
             <span  @click="showList = !showList"  :class="[showList && 'on']">📃</span>
-            <span  @click="showAuthor = !showAuthor" :class="[showAuthor && 'on']">👨‍🎓 </span>
-            <span  @click="repeatPlay = !repeatPlay" :class="[repeatPlay && 'on']">🔁 </span>
+            <span  @click="showAuthor = !showAuthor; saveLocal()" :class="[showAuthor && 'on']">👨‍🎓 </span>
+            <span  @click="repeatPlay = !repeatPlay; saveLocal()" :class="[repeatPlay && 'on']">🔁 </span>
             <input type="text" v-show="showList" v-model="keyword" placeholder="诗名或作者名搜索" />
             <!-- <input type="range" min="0" max="100" v-show="!showList" v-model="rangVal" /> -->
              <audio src="" v-show="!showList" controls id="audio-item"></audio>
@@ -123,6 +125,8 @@
     </div>
 
     <script src="../js/lib/vue.global.prod.min.js"></script>
+    <script src="../js/config.js"></script>
+  <script src="../js/auth-client.js"></script>
     <script src="../js/utils.js"></script>
     <script src="data.js"></script>
     <script src="index.js"></script>
