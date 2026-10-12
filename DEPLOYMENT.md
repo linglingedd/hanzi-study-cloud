@@ -2,10 +2,16 @@
 
 ## 当前状态（2026-10-12）
 
-- 已完成本地开发与测试，尚未创建生产 Supabase 项目、尚未发布 GitHub Pages。
-- 首批 100 个密码在项目外的「管理员私密资料」中，状态为待部署后启用。
-- 用户要求在需要注册、登录的环节暂停，由用户亲自操作。
-- 前端配置 `js/config.js` 故意为空；完成生产配置前无法登录，不能将本地预览视为已上线。
+- 学习网站：https://linglingedd.github.io/hanzi-study-cloud/
+- 管理后台：https://linglingedd.github.io/hanzi-study-cloud/admin.html
+- GitHub 仓库：https://github.com/linglingedd/hanzi-study-cloud （发布分支 master）
+- Supabase 项目：https://supabase.com/dashboard/project/liwbfcxlvduupiorssay
+- 正式发布任务 #2 成功：https://github.com/linglingedd/hanzi-study-cloud/actions/runs/38202813510
+- 首批 100 个密码已导入、启用，保存在项目外「管理员私密资料」的私密清单中。
+- 真实云端接口 10 项检查、线上浏览器 27 项检查通过；另有本地接口 9 项、浏览器 43 项检查通过。
+- 线上验证包括登录跳转、第二浏览器拒绝、汉字退出重登恢复、数学答案刷新恢复、古诗选择恢复、五个页面在 320/390/768/1440 像素下无横向溢出。
+- 公开注册和匿名注册关闭；管理员邮箱账号尚待本人创建及加入管理员名单，管理功能的生产验收需随后完成。本地管理功能已测试。
+- 验收使用独立测试账号，正式 100 个密码未参与测试。
 
 ## 发布顺序
 
@@ -17,8 +23,8 @@
 6. 执行私密目录的 `initial-accounts.private.sql`，确认 100 个账号全部未绑定。SQL 以固定 UUID 做幂等处理，不要重新随机生成第二批。
 7. 在 Supabase Auth 管理界面添加管理员邮箱用户，设置强密码并确认邮箱；关闭公共注册。将其 `auth.users.id` 加入 `public.study_admins(user_id)`，只给实际管理员授权。管理页不开放注册。
 8. 创建 GitHub 仓库，上传本项目代码。学习材料来源为原 MIT 许可项目，保留 LICENSE；项目外所有私密文件不上传。
-9. GitHub 仓库变量配置：`SUPABASE_URL` 和 `SUPABASE_PUBLISHABLE_KEY`（Supabase publishable key 或旧版 anon key）。严禁使用 service_role、sb_secret 或 STUDY_PEPPER。
-10. Pages 的发布源选择 GitHub Actions，推送 `main` 后由 `.github/workflows/pages.yml` 发布 `dist`。
+9. 工作流已填入 `SUPABASE_URL` 和 `SUPABASE_PUBLISHABLE_KEY`（公开配置）。严禁使用 service_role、sb_secret 或 STUDY_PEPPER。
+10. Pages 的发布源已选择 GitHub Actions，推送 `master` 后由 `.github/workflows/pages.yml` 发布 `dist`。
 11. 使用一个额外的临时验收账号在真实外网执行以下检查；验证结束停用临时账号，保持首批 100 个账号未绑定。
 
 ## 生产验收
