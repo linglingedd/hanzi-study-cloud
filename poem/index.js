@@ -11,6 +11,8 @@ const app = {
             currentPoetryList: [],
             selectedPoetry: null,
             isPlaying: false,
+            audioMessage: '',
+            playbackVersion: 0,
             audioPlayer: null,
             currPoemInd: -1,
             showList: false,
@@ -44,11 +46,17 @@ const app = {
             }
         };
         this.audioPlayer.onerror = (e) => {
-            console.error("Error loading audio:", e);
+            this.isPlaying = false;
+            this.audioMessage = '音频暂时加载失败，请检查网络后点击播放重试。';
         };
+        this.audioPlayer.onplay = () => { this.isPlaying = true; this.audioMessage = '正在朗读'; };
+        this.audioPlayer.onpause = () => { this.isPlaying = false; };
+        window.addEventListener('pagehide', () => this.stopAudio());
+        document.addEventListener('visibilitychange', () => { if (document.hidden) this.stopAudio(); });
         if (this.currPoemInd != -1) {
             this.selectPoetry(this.currentPoetryList[this.currPoemInd], true)
         }
+        if (!this.selectedPoetry) this.showList = true;
 
         const savedTheme = localStorage.getItem('poetryAppTheme');
         if (savedTheme && this.themes.some(t => t.key === savedTheme)) {
@@ -57,10 +65,11 @@ const app = {
     },
     methods: {
         getFilterPoems(poems) {
-            return poems.filter(poem => poem.title.includes(this.keyword) || poem.author.includes(this.keyword))
+            const keyword = this.keyword.trim();
+            return poems.filter(poem => poem.title.includes(keyword) || poem.author.includes(keyword))
         },
         scroll() {
-            document.querySelector('.poetry-list li.active').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            document.querySelector('.poetry-list li.active')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         },
         saveLocal() {
             setStorage('poem_currGrade', this.currGrade);
@@ -84,9 +93,10 @@ const app = {
             }
             poetry.audio = `./audio/${poetry.title}.mp3`;
             this.selectedPoetry = poetry;
+            this.stopAudio(); this.audioMessage = '点击播放，开始朗读';
+            this.audioPlayer.src = poetry.audio;
             if (!isInit) {
                 this.currPoemInd = this.currentPoetryList.findIndex(p => p.id === poetry.id);
-                this.stopAudio();
                 this.playAudio(this.selectedPoetry.audio)
                 this.saveLocal()
             }
@@ -94,32 +104,25 @@ const app = {
         },
         playAudio(audioUrl) {
             if (!audioUrl) return;
-            // 如果当前正在播放且URL相同，则不重新加载
-            if (this.audioPlayer.src === audioUrl && !this.audioPlayer.paused) {
-                return;
-            }
-            clearTimeout(this.timer);
-            this.timer = setTimeout(() => {
-                // 如果URL不同或播放器已暂停，则加载并播放
-                if (this.getFileName(this.audioPlayer.src) !== this.getFileName(audioUrl)) {
-                    this.audioPlayer.currentTime = 0;
-                    this.audioPlayer.src = audioUrl;
-                }
-                setTimeout(() => {
-                    this.audioPlayer.play().then(() => {
-                        this.isPlaying = true;
-                    }).catch(error => {
-                        console.error("音频播放失败:", error);
-                        this.isPlaying = false;
-                    });
-                }, 100)
-            }, 200)
+            const version = ++this.playbackVersion;
+            if (this.getFileName(this.audioPlayer.src) !== this.getFileName(audioUrl)) this.audioPlayer.src = audioUrl;
+            if (this.audioPlayer.error) this.audioPlayer.load();
+            this.audioMessage = '正在加载声音…';
+            this.audioPlayer.play().then(() => {
+                if (version === this.playbackVersion) { this.isPlaying = true; this.audioMessage = '正在朗读'; }
+            }).catch(error => {
+                if (version !== this.playbackVersion) return;
+                this.isPlaying = false;
+                this.audioMessage = error.name === 'NotAllowedError' ? '浏览器暂停了自动播放，请点击播放按钮。' : '音频加载失败，请检查网络后点击播放重试。';
+            });
         },
         stopAudio() {
+            this.playbackVersion++;
             if (this.audioPlayer) {
                 this.audioPlayer.pause();
                 // this.audioPlayer.currentTime = 0;
                 this.isPlaying = false;
+                this.audioMessage = '已暂停，点击播放继续';
             }
         },
         toggleAudio() {
@@ -165,6 +168,7 @@ const app = {
         }
     },
     computed: {
+        matchedCount() { return this.poemData.reduce((sum, poems) => sum + this.getFilterPoems(poems).length, 0); },
         canPrev() {
             return this.currPoemInd > 0;
         },
@@ -172,16 +176,6 @@ const app = {
             return this.currPoemInd < this.currentPoetryList.length - 1;
         }
     },
-    watch: {
-        selectedPoetry(newPoetry) {
-            if (newPoetry && newPoetry.audio) {
-                this.stopAudio();
-                this.playAudio(newPoetry.audio);
-            } else {
-                this.stopAudio();
-            }
-        }
-    }
 };
 
 HanziAuth.requireLogin().then(() => createApp(app).mount('#app'));

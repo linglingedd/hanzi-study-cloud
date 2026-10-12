@@ -8,6 +8,7 @@
     <!-- 引入 Vue.js -->
     <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.5.17/vue.global.prod.min.js"></script> -->
   <link rel="stylesheet" href="../css/cloud.css">
+  <link rel="stylesheet" href="../css/ux.css">
 </head>
 <body id="app" class="poem-page">
     <div v-cloak class="app_wrap" :class="currentTheme"> <!-- 绑定当前主题类 -->
@@ -16,14 +17,14 @@
             <div class="sidebar">
                 <div class="grade-selector">
                     <h2>选择年级</h2>
-                    <select v-model="currGrade" @change="selectGrade">
+                    <select v-model="currGrade" @change="selectGrade" aria-label="选择年级">
                         <option v-for="(grade, ind) in grades" :value="ind">{{ grade }}</option>
                     </select>
                 </div>
                 <div class="poetry-list">
                     <h3>{{ grades[currGrade] }}诗词</h3>
                     <ul>
-                        <li v-for="poetry in currentPoetryList" :key="poetry.id" @click="selectPoetry(poetry)" :class="{ active: selectedPoetry && selectedPoetry.id === poetry.id }">
+                        <li role="button" tabindex="0" @keydown.enter="selectPoetry(poetry)" @keydown.space.prevent="selectPoetry(poetry)" v-for="poetry in currentPoetryList" :key="poetry.id" @click="selectPoetry(poetry)" :class="{ active: selectedPoetry && selectedPoetry.id === poetry.id }">
                             {{ poetry.title }}<span v-show="showAuthor"> - {{ poetry.author }}</span>
                         </li>
                         <li v-if="currentPoetryList.length === 0" class="no-data">
@@ -53,6 +54,7 @@
                         <button @click="toggleAudio" :disabled="!selectedPoetry.audio">{{ isPlaying ? '暂停 ⏸️' : '播放 ▶️' }}</button>
                         <button @click="nextPoetry" :disabled="!repeatPlay && !canNext">下一首<span> ⏩</span></button>
                     </div>
+                    <p class="poem-audio-status" role="status">{{ audioMessage }}</p>
                     <div class="poem-title">
                         <h2 class="poetry-title">《{{ selectedPoetry.title }}》</h2>
                         <p class="poetry-meta">
@@ -94,17 +96,20 @@
                 </div>
                 <div v-else class="placeholder">
                     <h1>📚</h1>
-                    <h2>选择下方目录，开始读一首诗吧！</h2>
+                    <h2>选择一首诗，开始学习吧！</h2>
+                    <button class="open-catalog" @click="showList = true">打开诗词目录</button>
                     <p>✨ 寓教于乐，让古诗词更有趣！ ✨</p>
                 </div>
             
             </div>
         </div>
         <div class="container-list"  v-show="showList">
-            <div class="poem-list" v-for="(poems, ind) in poemData" :key="ind">
+            <p class="search-summary" role="status">{{ matchedCount ? '共找到 ' + matchedCount + ' 首诗词' : '没有找到相关诗词，试试其他诗名或作者。' }}</p>
+            <button v-if="keyword" class="clear-search" @click="keyword = ''">清空搜索</button>
+            <div class="poem-list" v-for="(poems, ind) in poemData" :key="ind" v-show="getFilterPoems(poems).length">
                 <h3>{{ grades[ind] }}诗词</h3>
                 <ul>
-                    <li v-for="poetry in getFilterPoems(poems)" :key="poetry.id" @click="selectPoetry(poetry, false, ind)" :class="{ active: selectedPoetry && selectedPoetry.id === poetry.id }">
+                    <li role="button" tabindex="0" @keydown.enter="selectPoetry(poetry, false, ind)" @keydown.space.prevent="selectPoetry(poetry, false, ind)" v-for="poetry in getFilterPoems(poems)" :key="poetry.id" @click="selectPoetry(poetry, false, ind)" :class="{ active: selectedPoetry && selectedPoetry.id === poetry.id }">
                         {{ poetry.title }}<span v-show="showAuthor"> - {{ poetry.author }}</span>
                     </li>
                     <li v-if="currentPoetryList.length === 0" class="no-data">
@@ -114,13 +119,12 @@
             </div>
         </div>
         <div class="list-icon">
-            <a href="../index.html" aria-label="返回汉字学习">汉字</a>
-            <span  @click="showList = !showList"  :class="[showList && 'on']">📃</span>
-            <span  @click="showAuthor = !showAuthor; saveLocal()" :class="[showAuthor && 'on']">👨‍🎓 </span>
-            <span  @click="repeatPlay = !repeatPlay; saveLocal()" :class="[repeatPlay && 'on']">🔁 </span>
-            <input type="text" v-show="showList" v-model="keyword" placeholder="诗名或作者名搜索" />
+            <button @click="showList = !showList" :aria-pressed="showList" :class="{on:showList}">📃 {{ showList ? '返回诗词' : '诗词目录' }}</button>
+            <button @click="showAuthor = !showAuthor; saveLocal()" :aria-pressed="showAuthor" :class="{on:showAuthor}">作者：{{ showAuthor ? '显示' : '隐藏' }}</button>
+            <button @click="repeatPlay = !repeatPlay; saveLocal()" :aria-pressed="repeatPlay" :class="{on:repeatPlay}">连续播放：{{ repeatPlay ? '开' : '关' }}</button>
+            <input type="search" v-show="showList" v-model="keyword" placeholder="诗名或作者名搜索" aria-label="搜索诗名或作者" />
             <!-- <input type="range" min="0" max="100" v-show="!showList" v-model="rangVal" /> -->
-             <audio src="" v-show="!showList" controls id="audio-item"></audio>
+             <audio v-show="!showList && selectedPoetry" controls preload="metadata" id="audio-item" aria-label="古诗播放器"></audio>
         </div>
     </div>
 
