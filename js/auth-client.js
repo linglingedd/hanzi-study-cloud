@@ -6,6 +6,8 @@
   const raw=new Set(['poetryAppTheme']);
   let timer,flight,session=null,previous={},applying=false,blocked=false;
   const pendingKey=id=>`${prefix}pending:${id}`;
+  const storageError=()=>Error('当前浏览器无法保存登录信息。请复制网址到 Safari 或 Chrome，在普通模式下打开，并允许保存网站数据。');
+  const randomID=()=>Array.from(crypto.getRandomValues(new Uint8Array(32)),b=>b.toString(16).padStart(2,'0')).join('');
   function read(key,fallback=null){try{return JSON.parse(localStorage.getItem(key)) ?? fallback;}catch{return fallback;}}
   function snapshot(){return Object.fromEntries(keys.filter(k=>localStorage.getItem(k)!==null).map(k=>[k,raw.has(k)?localStorage.getItem(k):read(k)]));}
   function apply(progress){
@@ -14,9 +16,11 @@
     finally{applying=false;previous=snapshot();}
   }
   function device(){
-    let d=localStorage.getItem(prefix+'device');
-    if(!d){d=Array.from(crypto.getRandomValues(new Uint8Array(32)),b=>b.toString(16).padStart(2,'0')).join('');localStorage.setItem(prefix+'device',d);}
-    return d;
+    try{
+      let d=localStorage.getItem(prefix+'device');
+      if(!d){d=randomID();localStorage.setItem(prefix+'device',d);}
+      return d;
+    }catch{throw storageError();}
   }
   function configuration(){
     const c=window.HANZI_CONFIG;
@@ -26,11 +30,16 @@
   async function api(action,payload={},options={}){
     const c=configuration();
     const token=options.token || session?.token || read(prefix+'session')?.token || '';
+    const deviceKey=device();
+    if(typeof AbortController!=='function')throw Error('当前浏览器版本较旧，请使用更新后的 Safari 或 Chrome 打开。');
+    // Older iOS browsers support AbortController but not AbortSignal.timeout.
+    const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),18000);
     let response;
     try{response=await fetch(`${c.supabaseUrl}/functions/v1/study-api`,{
-      method:'POST',headers:{'Content-Type':'application/json',apikey:c.publishableKey,'x-device-key':device(),'x-session-token':token},
-      body:JSON.stringify({action,...payload}),keepalive:!!options.keepalive,signal:AbortSignal.timeout(18000)
-    });}catch{throw Error(action==='login'?'暂时无法连接，请检查网络后重新登录。':'网络连接暂时中断，进度已暂存本机。请恢复联网后重试。');}
+      method:'POST',headers:{'Content-Type':'application/json',apikey:c.publishableKey,'x-device-key':deviceKey,'x-session-token':token},
+      body:JSON.stringify({action,...payload}),keepalive:!!options.keepalive,signal:controller.signal
+    });}catch{throw Error(action==='login'?'暂时无法连接登录服务。请复制网址到 Safari 或 Chrome 打开，或切换 Wi-Fi / 移动网络后重试。':'网络连接暂时中断，进度已暂存本机。请恢复联网后重试。');}
+    finally{clearTimeout(timeout);}
     const data=await response.json().catch(()=>({}));
     if(!response.ok){const e=Error(data.error || '服务暂时不可用，请稍后重试。');e.code=data.code;e.status=response.status;throw e;}
     return data;
@@ -55,7 +64,7 @@
   function queueSync(){
     if(applying || !assertOwner())return;
     const now=snapshot(),pending=read(pendingKey(session.user.id),{});
-    for(const k of keys)if(JSON.stringify(now[k])!==JSON.stringify(previous[k]))pending[k]={value:now[k] ?? null,version:crypto.randomUUID()};
+    for(const k of keys)if(JSON.stringify(now[k])!==JSON.stringify(previous[k]))pending[k]={value:now[k] ?? null,version:randomID()};
     previous=now;localStorage.setItem(pendingKey(session.user.id),JSON.stringify(pending));
     if(Object.keys(pending).length){status('进度待同步');clearTimeout(timer);timer=setTimeout(()=>syncNow().catch(()=>{}),500);}
   }
@@ -94,7 +103,7 @@
     async login(password){
       const result=await api('login',{password});
       const saved={token:result.token,user:result.user};
-      localStorage.setItem(prefix+'session',JSON.stringify(saved));
+      try{localStorage.setItem(prefix+'session',JSON.stringify(saved));}catch{throw storageError();}
       return result;
     },
     async requireLogin(){
