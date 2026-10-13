@@ -32,15 +32,22 @@
       if(editing){$('operation-value').focus();$('operation-value').select();}else $('operation-cancel').focus();
     });
   }
+  async function request(url,options,timeoutMs){
+    if(typeof AbortController!=='function')throw Error('当前浏览器版本较旧，请使用更新后的 Safari 或 Chrome 打开。');
+    const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),timeoutMs);
+    try{return await fetch(url,{...options,signal:controller.signal});}
+    catch{throw Error('暂时无法连接管理服务。请使用 Safari 或 Chrome 打开，或切换网络后重试。');}
+    finally{clearTimeout(timeout);}
+  }
   async function authRequest(path,body,token){
-    const c=config();const r=await fetch(c.supabaseUrl+'/auth/v1/'+path,{method:'POST',headers:{apikey:c.publishableKey,'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},body:JSON.stringify(body),signal:AbortSignal.timeout(18000)});
+    const c=config();const r=await request(c.supabaseUrl+'/auth/v1/'+path,{method:'POST',headers:{apikey:c.publishableKey,'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},body:JSON.stringify(body)},18000);
     const d=await r.json().catch(()=>({}));if(!r.ok)throw Error('管理员登录失败，请检查邮箱、密码或登录状态。');return d;
   }
   function saveAuth(value){auth={...value,expires_at:Math.floor(Date.now()/1000)+(value.expires_in || 3600)};sessionStorage.setItem(storageKey,JSON.stringify(auth));}
   async function api(action,body={}){
     const c=config();if(!auth)throw Error('请先登录管理后台。');
     if(auth.expires_at<Date.now()/1000+60)saveAuth(await authRequest('token?grant_type=refresh_token',{refresh_token:auth.refresh_token}));
-    const r=await fetch(c.supabaseUrl+'/functions/v1/study-api',{method:'POST',headers:{apikey:c.publishableKey,'Content-Type':'application/json',Authorization:'Bearer '+auth.access_token},body:JSON.stringify({action:'admin/'+action,...body}),signal:AbortSignal.timeout(20000)});
+    const r=await request(c.supabaseUrl+'/functions/v1/study-api',{method:'POST',headers:{apikey:c.publishableKey,'Content-Type':'application/json',Authorization:'Bearer '+auth.access_token},body:JSON.stringify({action:'admin/'+action,...body})},20000);
     const d=await r.json().catch(()=>({}));if(!r.ok){if(r.status===401){auth=null;sessionStorage.removeItem(storageKey);showLogin();}throw Error(d.error || '操作失败，请稍后重试。');}return d;
   }
   function showLogin(){ $('admin-login').hidden=false;$('dashboard').hidden=true;$('logout').hidden=true; }
