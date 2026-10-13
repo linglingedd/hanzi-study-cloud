@@ -42,9 +42,9 @@
       </header>
 
       <div id="hanzi-section" v-show="hanziShow && !notStart">
-        <p class="mode-help">{{ isClickRead ? '点读已开启：点击任意汉字听发音；关闭点读后进入闯关学习。' : '从当前关卡开始，依次完成写笔画、听音辨字和画一画。' }}</p>
+        <p class="mode-help">{{ isClickRead ? '点汉字听发音，点“测验”随时练习，无需先读完；关闭点读后进入闯关学习。' : '从当前关卡开始，依次完成写笔画、听音辨字和画一画。' }}</p>
         <div class="hanzi-list" id="hanzi-list">
-          <button type="button" class="hanzi-item" :class="{locked: !isClickRead && lockInd < ind, on: lockInd == ind, tested: item.isTest}" v-for="(item, ind) in list" :key="ind" @click="hanziClick(item, ind)" :aria-label="item.isTest ? '阶段测验' : (isClickRead ? '点读：' : '学习：') + item.w" :disabled="isClickRead && item.isTest">
+          <button type="button" class="hanzi-item" :class="{locked: !isClickRead && lockInd < ind, on: lockInd == ind, tested: item.isTest}" v-for="(item, ind) in list" :key="ind" @click="hanziClick(item, ind)" :aria-label="item.isTest ? '阶段测验' : (isClickRead ? '点读：' : '学习：') + item.w">
             {{ item.w }}
           </button>
         </div>
@@ -75,7 +75,8 @@
       </main>
 
       <section id="game-section" v-show="gameShow">
-        <h2>游戏时间！🥳</h2>
+        <h2>{{ currTest ? '听音测验' : '游戏时间！🥳' }}</h2>
+        <p class="mode-help" v-if="currTestPractice">随时测一测：答题后返回点读，闯关进度保持不变。</p>
         <div id="game-content">
           <div v-show="gameType === 'listen'">
             <p class="question-text"><button class="replay-button" @click="readItem(currItem, true)">🔊 再听一次</button>听声音，选择正确的汉字：</p>
