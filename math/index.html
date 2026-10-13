@@ -3,23 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+  <link rel="shortcut icon" href="../favicon.ico" type="image/x-icon">
   <title>哪吒学数学</title>
   <link rel="stylesheet" href="index.css">
   <script src="../js/lib/vue.global.prod.min.js"></script>
   <link rel="stylesheet" href="../css/cloud.css">
+  <link rel="stylesheet" href="../css/ux.css">
 </head>
 <body class="math-page">
   <div id="app" v-cloak>
     <!-- 控制选项区 -->
     <div class="controls">
-      <select v-model="range"><option value="10">十法</option><option value="99">百法</option></select>
+      <select v-model="range" aria-label="新题范围"><option value="10">10以内</option><option value="99">100以内</option></select>
       <label>
-        <input type="checkbox" v-model="hasSub"> 减法
+        <input type="checkbox" v-model="hasSub"> 包含减法
       </label>
-      <button @click="generateProblems">生成</button>
-      <button class="on" @click="checkAnswers">检查</button>
+      <button @click="requestProblems">换一组题</button>
+      <button class="on" @click="checkAnswers">检查答案</button>
     </div>
+    <p class="math-help">先点一道题，再用下方数字键填写。范围设置在换题后生效。</p>
+    <p class="math-feedback" role="status">{{ feedback || '已填写 ' + answeredCount + ' / ' + problems.length + ' 题' }}</p>
+    <dialog ref="resetDialog" aria-labelledby="reset-title"><h2 id="reset-title">换一组新题？</h2><p>当前这组题和答案将被替换。也可以继续完成当前练习。</p><div class="dialog-actions"><button @click="$refs.resetDialog.close()">继续做题</button><button @click="$refs.resetDialog.close(); generateProblems()">确认换题</button></div></dialog>
 
     <!-- 题目展示区 -->
      <div class="main-content">
@@ -29,6 +33,7 @@
            :key="index"
            class="problem"
            @click="selectProblem(index)"
+           role="button" tabindex="0" @keydown.enter="selectProblem(index)" @keydown.space.prevent="selectProblem(index)" :aria-label="'第' + (index + 1) + '题：' + problem.num1 + problem.operator + problem.num2 + '，答案' + (currentAnswer(index) || '未填写')"
            :class="{ active: activeIndex === index }"
          >
            {{ problem.num1 }} {{ problem.operator }} {{ problem.num2 }} = 
@@ -41,8 +46,8 @@
     <div class="number-pad">
       <button v-for="n in 9" :key="n" @click="inputNumber(n)">{{ n }}</button>
       <button @click="inputNumber(0)">0</button>
-      <button class="btn-del" @click="deleteNumber">⌫</button>
-      <button class="btn-img" @click="goHanzi">汉字</button>
+      <button class="btn-del" @click="deleteNumber" aria-label="删除一位数字">⌫</button>
+      <button class="btn-img" @click="nextProblem" aria-label="下一题">下题</button>
     </div>
   </div>
 

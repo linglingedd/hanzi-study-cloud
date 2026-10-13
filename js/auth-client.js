@@ -30,7 +30,7 @@
     try{response=await fetch(`${c.supabaseUrl}/functions/v1/study-api`,{
       method:'POST',headers:{'Content-Type':'application/json',apikey:c.publishableKey,'x-device-key':device(),'x-session-token':token},
       body:JSON.stringify({action,...payload}),keepalive:!!options.keepalive,signal:AbortSignal.timeout(18000)
-    });}catch{throw Error('网络连接暂时中断，进度已暂存本机。请恢复联网后重试。');}
+    });}catch{throw Error(action==='login'?'暂时无法连接，请检查网络后重新登录。':'网络连接暂时中断，进度已暂存本机。请恢复联网后重试。');}
     const data=await response.json().catch(()=>({}));
     if(!response.ok){const e=Error(data.error || '服务暂时不可用，请稍后重试。');e.code=data.code;e.status=response.status;throw e;}
     return data;
@@ -83,9 +83,11 @@
     const bar=document.createElement('div');bar.id='hanzi-account-bar';
     const label=document.createElement('span');label.textContent=session.user.label;
     const state=document.createElement('span');state.id='sync-status';state.setAttribute('role','status');state.textContent='已保存到云端';
-    const retry=document.createElement('button');retry.textContent='同步';retry.onclick=()=>syncNow().catch(e=>status(e.message,true));
+    const home=document.createElement('a');home.href=new URL('index.html',root).href;home.textContent='⌂ 主界面';home.setAttribute('aria-label','返回主界面');
+    home.onclick=event=>{if(document.body.classList.contains('hanzi-page')){event.preventDefault();window.dispatchEvent(new Event('study-home'));}};
+    const retry=document.createElement('button');retry.textContent='同步';retry.setAttribute('aria-label','同步学习进度');retry.onclick=async()=>{retry.disabled=true;try{await syncNow();}catch(e){status(e.message,true);}finally{retry.disabled=false;}};
     const exit=document.createElement('button');exit.textContent='退出';exit.onclick=async()=>{exit.disabled=true;try{await HanziAuth.logout();}catch(e){status(e.message,true);}finally{exit.disabled=false;}};
-    bar.append(label,state,retry,exit);document.body.append(bar);
+    bar.append(home,label,state,retry,exit);document.body.append(bar);
   }
   window.HanziAuth={
     user:null,root,configuration,
