@@ -9,6 +9,7 @@
   <script src="../js/lib/vue.global.prod.min.js"></script>
   <link rel="stylesheet" href="../css/cloud.css">
   <link rel="stylesheet" href="../css/ux.css">
+  <link rel="stylesheet" href="direct-entry.css">
 </head>
 <body class="math-page">
   <div id="app" v-cloak>
@@ -21,34 +22,29 @@
       <button @click="requestProblems">换一组题</button>
       <button class="on" @click="checkAnswers">检查答案</button>
     </div>
-    <p class="math-help">先点一道题，再用下方数字键填写。范围设置在换题后生效。</p>
+    <p class="math-help">点击每题的答案框，直接输入数字。按回车可到下一题；范围设置在换题后生效。</p>
     <p class="math-feedback" role="status">{{ feedback || '已填写 ' + answeredCount + ' / ' + problems.length + ' 题' }}</p>
     <dialog ref="resetDialog" aria-labelledby="reset-title"><h2 id="reset-title">换一组新题？</h2><p>当前这组题和答案将被替换。也可以继续完成当前练习。</p><div class="dialog-actions"><button @click="$refs.resetDialog.close()">继续做题</button><button @click="$refs.resetDialog.close(); generateProblems()">确认换题</button></div></dialog>
 
     <!-- 题目展示区 -->
      <div class="main-content">
        <div class="problems-grid">
-         <div 
+         <label
            v-for="(problem, index) in problems" 
            :key="index"
            class="problem"
-           @click="selectProblem(index)"
-           role="button" tabindex="0" @keydown.enter="selectProblem(index)" @keydown.space.prevent="selectProblem(index)" :aria-label="'第' + (index + 1) + '题：' + problem.num1 + problem.operator + problem.num2 + '，答案' + (currentAnswer(index) || '未填写')"
            :class="{ active: activeIndex === index }"
          >
-           {{ problem.num1 }} {{ problem.operator }} {{ problem.num2 }} = 
-           <div class="answer-box" :class="{ correct: checked && isCorrect(index), wrong: checked && !isCorrect(index), off: !currentAnswer(index) }">{{ currentAnswer(index) || '?' }}</div>
-         </div>
+           <span>{{ problem.num1 }} {{ problem.operator }} {{ problem.num2 }} =</span>
+           <input class="answer-box" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" autocomplete="off" enterkeyhint="next" placeholder="?"
+             :value="currentAnswer(index)" :aria-label="'第' + (index + 1) + '题：' + problem.num1 + problem.operator + problem.num2 + '的答案'"
+             :aria-invalid="checked && !isCorrect(index)" :class="{ correct: checked && isCorrect(index), wrong: checked && !isCorrect(index) }"
+             @focus="activeIndex = index" @input="updateAnswer(index, $event)" @keydown.enter.prevent="nextProblem(index)">
+         </label>
        </div>
      </div>
 
-    <!-- 数字键盘区 -->
-    <div class="number-pad">
-      <button v-for="n in 9" :key="n" @click="inputNumber(n)">{{ n }}</button>
-      <button @click="inputNumber(0)">0</button>
-      <button class="btn-del" @click="deleteNumber" aria-label="删除一位数字">⌫</button>
-      <button class="btn-img" @click="nextProblem" aria-label="下一题">下题</button>
-    </div>
+    <div class="math-finish"><button class="on" @click="checkAnswers">检查本组答案</button></div>
   </div>
 
   <script src="../js/config.js"></script>

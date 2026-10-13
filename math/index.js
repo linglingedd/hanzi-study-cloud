@@ -6,7 +6,6 @@ HanziAuth.requireLogin().then(() => Vue.createApp({
       problems: [],
       answers: {},
       activeIndex: null,
-      currItem: null,
       checked: false,
       allRight: false,
       feedback: '',
@@ -20,13 +19,7 @@ HanziAuth.requireLogin().then(() => Vue.createApp({
       this.problems = saved.problems; this.answers = saved.answers || {};
       this.checked = !!saved.checked; this.allRight = !!saved.allRight;
     } else this.generateProblems();
-    this.activeIndex = 0; this.currItem = this.problems[0];
-    document.addEventListener('keydown', event => {
-      if (event.target.closest('input,select,button,dialog') || this.$refs.resetDialog.open) return;
-      if (/^[0-9]$/.test(event.key)) { event.preventDefault(); this.inputNumber(event.key); }
-      if (event.key === 'Backspace') { event.preventDefault(); this.deleteNumber(); }
-      if (event.key === 'ArrowRight') { event.preventDefault(); this.nextProblem(); }
-    });
+    this.activeIndex = null;
   },
   computed: { answeredCount() { return this.problems.filter((_, i) => this.currentAnswer(i) !== '').length; } },
   watch: {
@@ -85,39 +78,27 @@ HanziAuth.requireLogin().then(() => Vue.createApp({
       for (let i = candidates.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [candidates[i], candidates[j]] = [candidates[j], candidates[i]]; }
       this.problems = candidates.slice(0, 18);
       this.answers = {};
-      this.activeIndex = 0; this.currItem = this.problems[0];
+      this.activeIndex = null;
     },
     selectProblem(index) {
       this.activeIndex = index;
-      this.currItem = this.problems[index];
-      this.$nextTick(() => document.querySelectorAll('.problem')[index]?.scrollIntoView({block:'nearest', behavior:'smooth'}));
+      const input = document.querySelectorAll('.answer-box')[index];
+      input?.focus();
+      input?.scrollIntoView({block:'nearest'});
     },
-    inputNumber(n) {
-      if (this.activeIndex !== null) {
-        const current = this.currentAnswer(this.activeIndex) || '';
-        const newAnswer = current + n.toString();
-        if (newAnswer.length <= 3) {
-          this.answers[this.activeIndex] = newAnswer;
-          this.checked = false; this.allRight = false; this.feedback = '';
-          this.currItem.correct = this.isCorrect(this.activeIndex);
-          // this.$set(this.answers, this.activeIndex, newAnswer);
-        }
-      }
-    },
-    deleteNumber() {
-      if (this.activeIndex !== null) {
-        const current = this.currentAnswer(this.activeIndex);
-        if (current) {
-          this.answers[this.activeIndex] = current.slice(0, -1);
-          this.checked = false; this.allRight = false; this.feedback = '';
-          this.currItem.correct = this.isCorrect(this.activeIndex);
-          // this.$set(this.answers, this.activeIndex, current.slice(0, -1));
-        }
-      }
+    updateAnswer(index, event) {
+      const value = event.target.value.replace(/[０-９]/g, n => String.fromCharCode(n.charCodeAt(0) - 0xfee0)).replace(/[^0-9]/g, '').slice(0, 3);
+      event.target.value = value;
+      if (value === this.currentAnswer(index)) return;
+      this.answers[index] = value;
+      this.checked = false; this.allRight = false; this.feedback = '';
     },
     currentAnswer(index) {
-      return this.answers[index] || '';
+      return String(this.answers[index] ?? '');
     },
-    nextProblem() { this.selectProblem((this.activeIndex + 1) % this.problems.length); }
+    nextProblem(index) {
+      if (index + 1 < this.problems.length) this.selectProblem(index + 1);
+      else { document.querySelectorAll('.answer-box')[index]?.blur(); this.checkAnswers(); }
+    }
   }
 }).mount('#app'))
