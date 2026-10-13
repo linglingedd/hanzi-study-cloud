@@ -35,6 +35,7 @@ HanziAuth.requireLogin().then(() => Vue.createApp({
       theme: 'default', // default green
       isClickRead: false, // 是否点读模式,
       currTest: false,
+      currTestPractice: false,
       drawType: 'slide-up',
       drawTypeList: ['slide-up', 'slide-down', 'slide-left', 'slide-right', 'fade', 'scale', 'circle'],
       drawColor: '#fff',
@@ -110,7 +111,7 @@ HanziAuth.requireLogin().then(() => Vue.createApp({
       } else if (this.bgPlay) {
         this.playBg(true)
       }
-      dnotify(`已切换为${ this.isClickRead ? '点读模式，点击任意汉字即可听读' : '学习模式' }`)
+      dnotify(`已切换为${ this.isClickRead ? '点读模式，可听读汉字或直接测验' : '学习模式' }`)
     },
     playBg(isPlay) {
       if (isPlay === true) {
@@ -142,12 +143,13 @@ HanziAuth.requireLogin().then(() => Vue.createApp({
       if (this.hanziShow && this.bgPlay && !this.isClickRead) this.playBg(true)
     },
     hanziClick(item, ind) {
-      if (this.isClickRead) { if (!item.isTest) this.speakText(item.w); return; }
-      if (this.lockInd < ind) { playAudio('lock'); return dnotify('先完成当前关卡，再学习后面的汉字；也可以开启点读听发音。', 5000); }
+      if (this.isClickRead && !item.isTest) { this.speakText(item.w); return; }
+      if (!this.isClickRead && this.lockInd < ind) { playAudio('lock'); return dnotify('先完成当前关卡，再学习后面的汉字；也可以开启点读听发音或练习测验。', 5000); }
       this.clearActivity()
       this.audioBg.pause()
       this.currInd = ind;
       this.currTest = !!item.isTest;
+      this.currTestPractice = !!item.isTest && this.isClickRead;
       if (item.isTest) {
         let temp = this.list
           .filter((x, i) => i >= ind - (TEST_INTERVAL) && i < ind)
@@ -229,7 +231,7 @@ HanziAuth.requireLogin().then(() => Vue.createApp({
         this.gameStatus = 'correct'
         if (!this.gameStep.includes(2)) this.gameStep.push(2)
         if (this.currTest) {
-          if (this.currInd == this.lockInd) this.addLockInd()
+          if (!this.currTestPractice && this.currInd == this.lockInd) this.addLockInd()
           this.later(() => this.goBack(1), 1200)
         }
       } else {
