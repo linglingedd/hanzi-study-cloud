@@ -75,7 +75,7 @@
     let data={id:a.id};
     if(action==='rename'){const name=await decision({title:'修改账号名称',text:'名称用于识别账号，不影响学习密码和进度。',value:a.label,confirmLabel:'保存名称'});if(name===null)return;data.label=name;}
     else if(action==='reset'){if(!await decision({title:'重置学习密码',text:`为「${a.label}」生成新密码？旧密码和旧登录将失效，学习进度保留。`,confirmLabel:'生成新密码'}))return;}
-    else if(action==='unbind'){if(!await decision({title:'解除设备绑定',text:`解除「${a.label}」的设备绑定？旧登录将失效，下次登录会绑定新浏览器，学习进度保留。`,confirmLabel:'确认解绑'}))return;}
+    else if(action==='unbind'){if(!await decision({title:'解除全部入口绑定',text:`解除「${a.label}」的全部入口绑定？所有已授权入口、登录和待确认申请都会失效。下次登录会绑定新入口，云端学习进度保留。`,confirmLabel:'确认解绑'}))return;}
     else{data.enabled=!a.enabled;const verb=data.enabled?'启用':'停用';if(!await decision({title:verb+'学习账号',text:`${verb}「${a.label}」？当前登录将失效，学习进度保留。`,confirmLabel:'确认'+verb}))return;}
     button.disabled=true;
     try{const result=await api(action,data);if(result.credentials)displayCredentials(result.credentials.map(c=>({...c,label:a.label})));message('操作已完成。',true);await load();}catch(e){message(e.message);}finally{button.disabled=false;}
