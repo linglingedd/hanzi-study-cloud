@@ -23,9 +23,21 @@
         <p id="login-error" class="form-message" role="alert"></p>
         <button class="primary" type="submit">进入学习 <span aria-hidden="true">→</span></button>
       </form>
+      <section id="browser-link-offer" class="browser-link-panel" hidden>
+        <h3>换浏览器或桌面入口？</h3><p>在原已登录入口确认一次，就能从这里继续使用。原入口无法打开时，请联系管理员处理。</p>
+        <button id="request-browser-link" type="button" class="secondary">申请确认码</button>
+      </section>
+      <section id="browser-link-pending" class="browser-link-panel" hidden aria-labelledby="browser-link-title">
+        <h3 id="browser-link-title">回原入口确认</h3>
+        <p>在原已登录的微信、浏览器或桌面入口，点击顶部“确认新入口”，输入下方确认码并核对授权。</p>
+        <output id="browser-link-code" aria-label="一次性确认码"></output>
+        <p id="browser-link-expiry"></p><p>确认码 5 分钟内有效。只在你自己的原入口中填写，不要转发给他人。</p>
+        <p id="browser-link-status" role="status" aria-live="polite">等待原入口确认…</p>
+        <div class="browser-link-actions"><button id="check-browser-link" type="button" class="secondary">已确认，继续学习</button><button id="cancel-browser-link" type="button" class="secondary">取消申请</button></div>
+      </section>
       <div class="login-note"><span class="note-icon" aria-hidden="true">✓</span><p><strong>进度自动保存</strong><br>同一密码再次登录，可继续上次的学习。</p></div>
-      <p class="device-note">首次登录会绑定当前浏览器。需要换设备或浏览器时，请联系管理员解绑。</p>
-      <details class="login-help"><summary>遇到登录或声音问题？</summary><p>没有学习密码：请向管理员领取，无需自行注册。</p><p>提示已绑定其他设备：请使用首次登录的浏览器，或联系管理员解绑。请勿使用无痕模式，以免丢失设备识别。</p><p>听不到声音：请先点击汉字或播放按钮，再检查设备音量与网络。</p></details>
+      <p class="device-note">首次登录会绑定当前入口。换浏览器或桌面入口时，可由原已登录入口确认授权；原入口无法使用时，请联系管理员。网站不能自动识别两个入口是否属于同一台设备。</p>
+      <details class="login-help"><summary>遇到登录或声音问题？</summary><p>没有学习密码：请向管理员领取，无需自行注册。</p><p>添加桌面：建议先添加，再从桌面图标首次登录。已在微信等入口登录的，可申请确认码，再回原入口点击“确认新入口”。请勿使用无痕模式或清除网站数据。</p><p>结束学习：进度保存后直接关闭页面即可；点击“退出”后，同一已授权入口仍可用原密码再次登录。</p><p>听不到声音：请先点击汉字或播放按钮，再检查设备音量与网络。</p></details>
       <a class="admin-link" href="admin.html">管理员入口</a>
     </section>
   </main>
